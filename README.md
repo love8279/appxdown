@@ -1,6 +1,6 @@
 # Appx Downloader
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://dashboard.heroku.com/new?template=https://github.com/YOUR_GITHUB_USER/appx-bot)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://dashboard.heroku.com/new?template=https://github.com/love8279/appxdown)
 
 ### How to use:
 1. Copy API_ID, API_HASH, BOT_TOKEN.
