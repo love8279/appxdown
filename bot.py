@@ -2,10 +2,8 @@ import os
 import re
 import requests
 import subprocess
-import asyncio
 from pyrogram import Client, filters
 
-# Heroku Config Vars
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
@@ -21,22 +19,18 @@ def get_headers(token):
 
 @app.on_message(filters.command("start"))
 async def start(client, message):
-    await message.reply_text(
-        "✨ **Appx Automation Bot** ✨\n\n"
-        "1. Pehle `/login YOUR_TOKEN` bhejein.\n"
-        "2. Phir `/download COURSE_ID` se content nikalein."
-    )
+    await message.reply_text("✅ **Bot Active!**\nUse `/login TOKEN` and then `/download COURSE_ID`.")
 
 @app.on_message(filters.command("login"))
 async def login(client, message):
     if len(message.command) < 2:
-        return await message.reply_text("Usage: `/login TOKEN`")
+        return await message.reply_text("Usage: `/login YOUR_TOKEN`")
     token = message.command[1]
     res = requests.get("https://api.appx.co.in/get-profile", headers=get_headers(token))
     if res.status_code == 200:
-        await message.reply_text("✅ Token Valid hai! Ab download command use karein.")
+        await message.reply_text("✅ Login Success!")
     else:
-        await message.reply_text("❌ Galat Token.")
+        await message.reply_text("❌ Invalid Token.")
 
 @app.on_message(filters.command("download"))
 async def download_handler(client, message):
@@ -44,32 +38,28 @@ async def download_handler(client, message):
         return await message.reply_text("Usage: `/download COURSE_ID`")
     
     course_id = message.command[1]
-    token = "PASTE_YOUR_DEFAULT_TOKEN_HERE" # Default token ya database se lein
-    status = await message.reply_text("⚡ Fetching Course Content...")
+    token = "YOUR_DEFAULT_TOKEN" # Yahan apna token daal sakte hain
+    status = await message.reply_text("🔎 Content fetch ho raha hai...")
 
     api_url = f"https://api.appx.co.in/get-course-content/{course_id}"
     try:
-        data = requests.get(api_url, headers=get_headers(token)).json()
-        contents = data.get("data", [])
+        response = requests.get(api_url, headers=get_headers(token)).json()
+        data = response.get("data", [])
         
-        if not contents:
-            return await status.edit("❌ Koi content nahi mila ya ID galat hai.")
+        if not data:
+            return await status.edit("❌ Course empty hai ya ID galat hai.")
 
-        await status.edit(f"Found {len(contents)} items. Downloading shuru...")
-
-        for item in contents:
-            title = re.sub(r'[\\/*?:"<>|]', "", item.get("title", "File")).strip()
+        for item in data:
+            name = re.sub(r'[\\/*?:"<>|]', "", item.get("title", "File")).strip()
             url = item.get("link") or item.get("video_link")
-            
             if not url: continue
 
-            await status.edit(f"Downloading: `{title}`")
-            
-            file_name = f"{title}.mp4" if "m3u8" in url else f"{title}.pdf"
-            
+            await status.edit(f"📥 Downloading: `{name}`")
+            file_name = f"{name}.mp4" if "m3u8" in url else f"{name}.pdf"
+
             try:
                 if "m3u8" in url:
-                    # Optimized yt-dlp command for Heroku
+                    # ffmpeg location logic added
                     cmd = f'yt-dlp -o "{file_name}" "{url}" --no-check-certificate'
                     subprocess.run(cmd, shell=True)
                 else:
@@ -78,15 +68,15 @@ async def download_handler(client, message):
                         for chunk in r.iter_content(chunk_size=8192):
                             f.write(chunk)
 
-                # Upload to Telegram
-                await client.send_document(message.chat.id, file_name, caption=f"✅ `{title}`")
+                await client.send_document(message.chat.id, file_name, caption=f"✅ `{name}`")
                 if os.path.exists(file_name): os.remove(file_name)
 
             except Exception as e:
-                await message.reply_text(f"⚠️ Error in {title}: {str(e)}")
+                await message.reply_text(f"⚠️ Error: {name}\n`{str(e)}`")
 
-        await status.edit("✅ Process Complete!")
+        await status.edit("🎯 Saara content process ho gaya!")
     except Exception as e:
-        await status.edit(f"❌ API Error: {str(e)}")
+        await status.edit(f"❌ Error: {str(e)}")
 
 app.run()
+        
