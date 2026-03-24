@@ -1,0 +1,14 @@
+{
+  "name": "Appx Bot",
+  "description": "Appx Video/PDF Downloader",
+  "repository": "https://github.com/YOUR_GITHUB_USER/appx-bot",
+  "env": {
+    "API_ID": { "description": "API ID from my.telegram.org" },
+    "API_HASH": { "description": "API HASH from my.telegram.org" },
+    "BOT_TOKEN": { "description": "Bot Token from @BotFather" }
+  },
+  "buildpacks": [
+    { "url": "heroku/python" },
+    { "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-get.git" }
+  ]
+}
